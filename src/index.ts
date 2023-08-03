@@ -1,4 +1,4 @@
-// import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -16,8 +16,26 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const port = Number(process.env.PORT) || 5000;
-app.listen(port, () => console.log("Servidor a correr na porta " + port));
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+const prisma = new PrismaClient();
+
+export async function newUser(user:{userName:string,password:string}) {
+  return await prisma.user
+    .create({
+      data: {...user},
+    })
+    .then(() => {
+      return true;
+    })
+    .catch(() => {
+      return false;
+    });
+}
+
 const userRouter = express.Router();
+
+app.listen(port, () => console.log("Servidor a correr na porta " + port));
