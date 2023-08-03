@@ -1,5 +1,7 @@
 import { describe, it } from "@jest/globals";
-import { newUser } from ".";
+import request from "supertest";
+
+import app, { fetchUser, newUser } from ".";
 
 describe("Say Hello", () => {
   it("Greats", () => {
@@ -18,7 +20,25 @@ describe("Say Hello", () => {
       userName: "admin1",
       password: "1234",
     };
-    const notFound = await fetchUser(user);
-    expect(notFound).toBeTruthy();
+    const found = await fetchUser(user);
+    expect(!!found?.id).toBeFalsy();
+  });
+  it("Fetch user real user", async () => {
+    const user = {
+      userName: "admin",
+      password: "1234",
+    };
+    const found = await fetchUser(user);
+    expect(!!found?.id).toBeTruthy();
+  });
+});
+describe("Test /login", () => {
+  it("Valid JWT for real user", async () => {
+    const response = await request(app)
+      .post("/login")
+      .send({ username: "admin", password: "1234" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("token");
   });
 });
