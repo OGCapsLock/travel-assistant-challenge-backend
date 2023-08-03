@@ -2,7 +2,6 @@
   "name": "travel-assistant-challenge-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "jest",
     "build": "rimraf dist && tsc",
