@@ -44,7 +44,7 @@ app.post("/login", async (req: Request, res: Response) => {
   const found = await fetchUser(user);
   if (found) {
     const token = jwt.sign(
-      { id: found.id, username: found.userName },
+      { id: found?.id, username: found?.userName },
       SECRET_KEY,
       { expiresIn: "1h" }
     );
@@ -52,6 +52,28 @@ app.post("/login", async (req: Request, res: Response) => {
   }
 
   res.status(401).json({ message: "Credenciais inválidas." });
+});
+app.post("/user", async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  const user = {
+    userName: username,
+    password: password,
+  };
+  console.log(user, "user");
+
+  const found = await fetchUser(user);
+  if (found) {
+    console.log(found);
+    return res.status(403).json({ status: 403, message: "User exists" });
+  }
+  const data = await newUser(user);
+  if (!data) {
+    console.log(data);
+    return res
+      .status(400)
+      .json({ status: 400, message: "Algum valor nao foi especificado" });
+  }
+  res.status(201).json({ message: "User criado", id: data?.id });
 });
 
 app.get("/protected", authenticateToken, (req: Request, res: Response) => {
@@ -71,20 +93,23 @@ export async function newUser(user: { userName: string; password: string }) {
     .create({
       data: { ...user },
     })
-    .then(() => {
-      return true;
+    .then((data) => {
+      return data;
     })
     .catch(() => {
-      return false;
+      console.log("Erro ao criar user");
     });
 }
 export async function fetchUser(user: { userName: string; password: string }) {
   return await prisma.user
-    .findFirstOrThrow({
-      where: { ...user },
+    .findMany({
+      where: {
+        userName: user.userName,
+      },
+      take: 1,
     })
     .then((data) => {
-      return data;
+      return data?.[0];
     })
     .catch(() => {
       console.log("Usuario nao encontrado");
